@@ -31,7 +31,7 @@ import (
 //     }
 func Pack(data map[string]map[string]string) error {
 	for out, content := range data {
-		fp, err := os.Create("./handlers/pack.go")
+		fp, err := os.Create(out)
 		if err != nil {
 			return err
 		}
