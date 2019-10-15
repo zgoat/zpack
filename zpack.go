@@ -6,6 +6,7 @@ import (
 	"io/ioutil"
 	"os"
 	"path/filepath"
+	"sort"
 	"strings"
 )
 
@@ -42,7 +43,14 @@ func Pack(data map[string]map[string]string) error {
 			return err
 		}
 
-		for varname, files := range content {
+		var varnames []string
+		for v := range content {
+			varnames = append(varnames, v)
+		}
+		sort.Strings(varnames)
+
+		for _, varname := range varnames {
+			files := content[varname]
 			st, err := os.Stat(files)
 			if err != nil {
 				return err
