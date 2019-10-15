@@ -5,6 +5,7 @@ import (
 	"io"
 	"io/ioutil"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"sort"
 	"strings"
@@ -67,6 +68,10 @@ func Pack(data map[string]map[string]string) error {
 		if err != nil {
 			return err
 		}
+		err = Format(out)
+		if err != nil {
+			return err
+		}
 	}
 
 	return nil
@@ -123,6 +128,15 @@ func Dir(fp io.Writer, varname, dir string) error {
 
 	_, err = fp.Write([]byte("}\n\n"))
 	return err
+}
+
+// Format the given file with gofmt.
+func Format(path string) error {
+	out, err := exec.Command("gofmt", "-w", path).CombinedOutput()
+	if err != nil {
+		return fmt.Errorf("gofmt: %s: %s", err, string(out))
+	}
+	return nil
 }
 
 func asbyte(s []byte) string {
