@@ -1,6 +1,8 @@
 package zpack
 
 import (
+	"bytes"
+	"encoding/base64"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -9,6 +11,7 @@ import (
 	"path/filepath"
 	"sort"
 	"strings"
+	"unicode/utf8"
 )
 
 // Pack data to a Go file.
@@ -31,7 +34,7 @@ import (
 //         fmt.Fprintln(os.Stderr, err)
 //         os.Exit(1)
 //     }
-func Pack(data map[string]map[string]string) error {
+func Pack(data map[string]map[string]string, ignore ...string) error {
 	for out, content := range data {
 		fp, err := os.Create(out)
 		if err != nil {
@@ -58,7 +61,7 @@ func Pack(data map[string]map[string]string) error {
 			}
 
 			if st.IsDir() {
-				err = Dir(fp, varname, files)
+				err = Dir(fp, varname, files, ignore...)
 			} else {
 				err = File(fp, varname, files)
 			}
@@ -84,7 +87,7 @@ func Header(fp io.Writer, pkg string) error {
 	if err != nil {
 		return err
 	}
-	_, err = fp.Write([]byte("package " + pkg + "\n\n"))
+	_, err = fp.Write([]byte("package " + pkg + "\n\nimport \"encoding/base64\"\n\n"))
 	return err
 }
 
@@ -95,12 +98,12 @@ func File(fp io.Writer, varname, path string) error {
 		return err
 	}
 
-	_, err = fmt.Fprintf(fp, "var %s = %s\n", varname, asbyte(d))
+	_, err = fmt.Fprintf(fp, "var %s = %s\n", varname, enc(d))
 	return err
 }
 
 // Dir recursively writes all files in a directory as variables.
-func Dir(fp io.Writer, varname, dir string) error {
+func Dir(fp io.Writer, varname, dir string, ignore ...string) error {
 	_, err := fp.Write([]byte("var " + varname + " = map[string][]byte{\n"))
 	if err != nil {
 		return err
@@ -113,9 +116,11 @@ func Dir(fp io.Writer, varname, dir string) error {
 		if st.IsDir() {
 			return nil
 		}
-		// Special case to exclude VCS "keep" files.
-		if strings.HasSuffix(path, "/.keep") {
-			return nil
+		for _, ig := range ignore {
+			// Special case to exclude VCS "keep" files.
+			if strings.HasSuffix(path, ig) {
+				return nil
+			}
 		}
 
 		d, err := ioutil.ReadFile(path)
@@ -123,7 +128,7 @@ func Dir(fp io.Writer, varname, dir string) error {
 			return err
 		}
 
-		_, err = fmt.Fprintf(fp, "\t\"%s\": %s,\n\n", path, asbyte(d))
+		_, err = fmt.Fprintf(fp, "\t\"%s\": %s,\n", path, enc(d))
 		return err
 	})
 	if err != nil {
@@ -143,13 +148,17 @@ func Format(path string) error {
 	return nil
 }
 
-func asbyte(s []byte) string {
-	var b strings.Builder
-	for i, c := range s {
-		if i%19 == 0 {
-			b.WriteString("\n\t\t")
-		}
-		b.WriteString(fmt.Sprintf("%#x, ", c))
+func enc(s []byte) string {
+	if bytes.IndexByte(s, 0) == -1 && utf8.Valid(s) {
+		return fmt.Sprintf("[]byte(`%s`)", bytes.Replace(s, []byte("`"), []byte("` + \"`\" + `"), -1))
 	}
-	return "[]byte{" + b.String() + "}"
+
+	// TODO: maybe wrap?
+	return fmt.Sprintf(`func() []byte {
+		s, err := base64.StdEncoding.DecodeString("%s")
+		if err != nil {
+			panic(err)
+		}
+		return s
+	}()`, base64.StdEncoding.EncodeToString(s))
 }
