@@ -113,6 +113,10 @@ func Dir(fp io.Writer, varname, dir string) error {
 		if st.IsDir() {
 			return nil
 		}
+		// Special case to exclude VCS "keep" files.
+		if strings.HasSuffix(path, "/.keep") {
+			return nil
+		}
 
 		d, err := ioutil.ReadFile(path)
 		if err != nil {
