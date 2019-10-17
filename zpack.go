@@ -2,6 +2,7 @@ package zpack
 
 import (
 	"bytes"
+	"compress/zlib"
 	"encoding/base64"
 	"fmt"
 	"io"
@@ -42,7 +43,7 @@ func Pack(data map[string]map[string]string, ignore ...string) error {
 		}
 		defer func() { fp.Close() }()
 
-		err = Header(fp, filepath.Dir(out))
+		err = Header(fp, filepath.Base(filepath.Dir(out)))
 		if err != nil {
 			return err
 		}
@@ -76,7 +77,6 @@ func Pack(data map[string]map[string]string, ignore ...string) error {
 			return err
 		}
 	}
-
 	return nil
 }
 
@@ -87,7 +87,12 @@ func Header(fp io.Writer, pkg string) error {
 	if err != nil {
 		return err
 	}
-	_, err = fp.Write([]byte("package " + pkg + "\n\nimport \"encoding/base64\"\n\n"))
+	_, err = fp.Write([]byte("package " + pkg + "\n\nimport (" + `
+		"bytes"
+		"compress/zlib"
+		"encoding/base64"
+		"io/ioutil"
+	` + ")\n\nvar _, _, _, _ = zlib.BestSpeed, base64.NoPadding, ioutil.Discard, bytes.Join\n\n"))
 	return err
 }
 
@@ -151,6 +156,32 @@ func Format(path string) error {
 func enc(s []byte) string {
 	if bytes.IndexByte(s, 0) == -1 && utf8.Valid(s) {
 		return fmt.Sprintf("[]byte(`%s`)", bytes.Replace(s, []byte("`"), []byte("` + \"`\" + `"), -1))
+	}
+
+	// Compress files larger than 100K
+	if len(s) > 1024*100 {
+		var b bytes.Buffer
+		w := zlib.NewWriter(&b)
+		w.Write(s)
+		w.Close()
+
+		return fmt.Sprintf(`func() []byte {
+			z, err := base64.StdEncoding.DecodeString("%s")
+			if err != nil {
+				panic(err)
+			}
+			r, err := zlib.NewReader(bytes.NewReader(z))
+			if err != nil {
+				panic(err)
+			}
+
+			s, err := ioutil.ReadAll(r)
+			if err != nil {
+				panic(err)
+			}
+			r.Close()
+			return s
+		}()`, base64.StdEncoding.EncodeToString(b.Bytes()))
 	}
 
 	// TODO: maybe wrap?

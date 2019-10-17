@@ -1,7 +1,13 @@
-zpack is yet another tool to pack static data in Go binaries.
+[![Build Status](https://travis-ci.org/zgoat/zpack.svg?branch=master)](https://travis-ci.org/zgoat/zpack)
+[![codecov](https://codecov.io/gh/zgoat/zpack/branch/master/graph/badge.svg)](https://codecov.io/gh/zgoat/zpack)
+[![GoDoc](https://godoc.org/github.com/zgoat/zpack?status.svg)](https://godoc.org/github.com/zgoat/zpack)
 
-Why? Because I don't like relying on external binaries, and most other tools do.
+zpack is yet another way to pack static data in Go binaries.
 
+Why? Because I don't like relying on external binaries, and many other solutions
+do. zpack just writes data to the specified file as `[]byte()`.
+
+Basic usage:
 
 ```go
 // +build go_run_only
@@ -31,3 +37,5 @@ func main() {
 	}
 }
 ```
+
+Then `go generate ./...` and presto!
