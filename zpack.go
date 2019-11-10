@@ -12,6 +12,7 @@ import (
 	"path/filepath"
 	"sort"
 	"strings"
+	"unicode"
 	"unicode/utf8"
 )
 
@@ -151,6 +152,35 @@ func Format(path string) error {
 		return fmt.Errorf("gofmt: %s: %s", err, string(out))
 	}
 	return nil
+}
+
+// Varname replaces any sequence of invalid identifier characters with an _.
+func Varname(s string) string {
+	if s == "" {
+		// TODO: possibly random generate?
+		return ""
+	}
+
+	var n []rune
+	var replaced bool
+	for _, c := range s {
+		if unicode.IsLetter(c) || unicode.IsDigit(c) || c == '_' {
+			n = append(n, c)
+			replaced = false
+			continue
+		}
+
+		if !replaced {
+			n = append(n, '_')
+			replaced = true
+		}
+	}
+
+	if n[0] != '_' && !unicode.IsLetter(n[0]) {
+		n = append([]rune{'v'}, n...)
+	}
+
+	return string(n)
 }
 
 func enc(s []byte) string {

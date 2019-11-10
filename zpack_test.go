@@ -42,6 +42,30 @@ func TestPack(t *testing.T) {
 	// }
 }
 
+func TestVaraname(t *testing.T) {
+	tests := []struct {
+		in, want string
+	}{
+		{"", ""},
+		{"ab", "ab"},
+		{"a.b", "a_b"},
+		{"a..b", "a_b"},
+		{"a__b", "a__b"},
+		{"1ab", "v1ab"},
+		{"αβ", "αβ"},
+		{"α.β", "α_β"},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.in, func(t *testing.T) {
+			out := Varname(tt.in)
+			if out != tt.want {
+				t.Errorf("\nout:  %q\nwant: %q", out, tt.want)
+			}
+		})
+	}
+}
+
 const test = `
 package %s
 
