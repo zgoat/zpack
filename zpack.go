@@ -115,9 +115,15 @@ func Dir(fp io.Writer, varname, dir string, ignore ...string) error {
 		return err
 	}
 
+	// Make sure to walk the contents of the directory in case of a link,
+	// instead of the link itself.
+	if !strings.HasSuffix(dir, "/") {
+		dir += "/"
+	}
+
 	err = filepath.Walk(dir, func(path string, st os.FileInfo, err error) error {
 		if err != nil {
-			return err
+			return fmt.Errorf("walk error: %s", err)
 		}
 		if st.IsDir() {
 			return nil
@@ -131,7 +137,7 @@ func Dir(fp io.Writer, varname, dir string, ignore ...string) error {
 
 		d, err := ioutil.ReadFile(path)
 		if err != nil {
-			return err
+			return fmt.Errorf("ioutil.ReadFile(%q): %s", path, err)
 		}
 
 		_, err = fmt.Fprintf(fp, "\t\"%s\": %s,\n", path, enc(d))
