@@ -36,8 +36,12 @@ import (
 //         fmt.Fprintln(os.Stderr, err)
 //         os.Exit(1)
 //     }
+//
+// The ignore patterns are matched by strings.HasSuffix().
 func Pack(data map[string]map[string]string, ignore ...string) error {
 	for out, content := range data {
+		// TODO: be atomic; that is, we don't want to clobber anything existing
+		// unless we're sure we'll be creating valid Go files.
 		fp, err := os.Create(out)
 		if err != nil {
 			return err
@@ -109,6 +113,8 @@ func File(fp io.Writer, varname, path string) error {
 }
 
 // Dir recursively writes all files in a directory as variables.
+//
+// The ignore patterns are matched by strings.HasSuffix().
 func Dir(fp io.Writer, varname, dir string, ignore ...string) error {
 	_, err := fp.Write([]byte("var " + varname + " = map[string][]byte{\n"))
 	if err != nil {
@@ -153,6 +159,7 @@ func Dir(fp io.Writer, varname, dir string, ignore ...string) error {
 
 // Format the given file with gofmt.
 func Format(path string) error {
+	// TODO: can also use "go/format.Source(data)"
 	out, err := exec.Command("gofmt", "-w", path).CombinedOutput()
 	if err != nil {
 		return fmt.Errorf("gofmt: %s: %s", err, string(out))

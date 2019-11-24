@@ -15,26 +15,29 @@ Basic usage:
 package main
 
 import (
-	"fmt"
-	"os"
+    "fmt"
+    "os"
 
-	"zgo.at/zpack"
+    "zgo.at/zpack"
 )
 
 func main() {
-	err := zpack.Pack(map[string]map[string]string{
-		"./db/pack.go": map[string]string{
-			"Schema": "./db/schema.sql",
-		},
-		"./handlers/pack.go": map[string]string{
-			"packPublic": "./public",
-			"packTpl":    "./tpl",
-		},
-	})
-	if err != nil {
-		fmt.Fprintln(os.Stderr, err)
-		os.Exit(1)
-	}
+    err := zpack.Pack(map[string]map[string]string{
+        // Pack ./db/schema.sql in ./db/pack.go as the variable "Schema".
+        "./db/pack.go": map[string]string{
+            "Schema": "./db/schema.sql",
+        },
+
+        // Pack all files in the "./public" and "./tpl" directories.
+        "./handlers/pack.go": map[string]string{
+            "packPublic": "./public",
+            "packTpl":    "./tpl",
+        },
+    })
+    if err != nil {
+        fmt.Fprintln(os.Stderr, err)
+        os.Exit(1)
+    }
 }
 ```
 
