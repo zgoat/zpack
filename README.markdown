@@ -1,6 +1,6 @@
 [![Build Status](https://travis-ci.org/zgoat/zpack.svg?branch=master)](https://travis-ci.org/zgoat/zpack)
 [![codecov](https://codecov.io/gh/zgoat/zpack/branch/master/graph/badge.svg)](https://codecov.io/gh/zgoat/zpack)
-[![GoDoc](https://godoc.org/github.com/zgoat/zpack?status.svg)](https://godoc.org/github.com/zgoat/zpack)
+[![GoDoc](https://godoc.org/github.com/zgoat/zpack?status.svg)](https://pkg.go.dev/github.com/zgoat/zpack)
 
 zpack is yet another way to pack static data in Go binaries.
 
