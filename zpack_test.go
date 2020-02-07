@@ -16,7 +16,7 @@ func TestPack(t *testing.T) {
 	defer func() { os.RemoveAll(tmp) }()
 
 	err = Pack(map[string]map[string]string{
-		tmp + "/pack.go": map[string]string{
+		tmp + "/pack.go": {
 			"zpack":    "./zpack.go",
 			"zpackDir": ".",
 		},

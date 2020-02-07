@@ -71,6 +71,9 @@ func Pack(data map[string]map[string]string, ignore ...string) error {
 			} else {
 				err = File(fp, varname, files)
 			}
+			if err != nil {
+				return err
+			}
 		}
 
 		err = fp.Close()
