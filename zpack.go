@@ -40,6 +40,11 @@ import (
 // The ignore patterns are matched by strings.HasSuffix().
 func Pack(data map[string]map[string]string, ignore ...string) error {
 	for out, content := range data {
+		out, err := filepath.Abs(out)
+		if err != nil {
+			return err
+		}
+
 		// TODO: be atomic; that is, we don't want to clobber anything existing
 		// unless we're sure we'll be creating valid Go files.
 		fp, err := os.Create(out)
