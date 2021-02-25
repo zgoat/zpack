@@ -2,6 +2,8 @@
 [![codecov](https://codecov.io/gh/zgoat/zpack/branch/master/graph/badge.svg)](https://codecov.io/gh/zgoat/zpack)
 [![GoDoc](https://godoc.org/github.com/zgoat/zpack?status.svg)](https://pkg.go.dev/github.com/zgoat/zpack)
 
+**Note: this is no longer maintained in favour of the `embed` package introduced in Go 1.16.**
+
 zpack is yet another way to pack static data in Go binaries.
 
 Why? Because I don't like relying on external binaries, and many other solutions
